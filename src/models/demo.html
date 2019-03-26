@@ -1,0 +1,44 @@
+(
+<html>
+<head>
+  <meta charset="UTF-8"/>
+  <title>菜鸟教程 React 实例</title>
+  <script src="https://cdn.staticfile.org/react/16.4.0/umd/react.development.js"></script>
+  <script src="https://cdn.staticfile.org/react-dom/16.4.0/umd/react-dom.development.js"></script>
+  <script src="https://cdn.staticfile.org/babel-standalone/6.26.0/babel.min.js"></script>
+</head>
+<div id="root">
+</div>
+</body>
+<script type="text/babel">
+  class NameClass extends React.Component {
+    render() {
+      return <h1> Hello, {this.props.value} </h1>;
+    }
+  }
+
+  class MeaasgeClass extends React.Component {
+
+
+    render() {
+      return <h1>{this.props.value}</h1>;
+    }
+  }
+
+  function AppClass() {
+    return (
+      <div>
+        <NameClass name="菜鸟教程"/>
+        <MeaasgeClass name="http://www.runoob.com"/>
+      </div>
+    );
+  }
+
+  ReactDOM.render(
+    <AppClass/>,
+    document.getElementById('root'),
+  );
+
+</script>
+</html>
+)
