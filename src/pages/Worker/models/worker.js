@@ -1,4 +1,4 @@
-import { queryWorker, addWorker, updateWorker, deleteWorker } from '@/services/api';
+import { pageWorkerList, addWorker, updateWorker, deleteWorker } from '@/services/api';
 
 export default {
   namespace: 'worker',
@@ -11,7 +11,7 @@ export default {
 
   effects: {
     * query({ payload }, { call, put }) {
-      const response = yield call(queryWorker, payload);
+      const response = yield call(pageWorkerList, payload);
       yield put({
         type: 'save',
         payload: response,

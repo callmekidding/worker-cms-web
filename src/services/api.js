@@ -13,8 +13,12 @@ export async function queryRule(params) {
   return request(`/api/rule?${stringify(params)}`);
 }
 
-export async function queryWorker(params) {
+export async function pageWorkerList(params) {
   return request(`/api/worker/pageWorkerList?${stringify(params)}`);
+}
+
+export async function queryWorkerById(params) {
+  return request(`/api/worker/queryWorkerById?${stringify(params)}`);
 }
 
 export async function queryWorkerBudget(params) {
