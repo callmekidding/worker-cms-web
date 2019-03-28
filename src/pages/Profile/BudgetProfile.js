@@ -59,6 +59,13 @@ function disabledDate(current) {
 class CreateForm extends PureComponent {
   constructor(props) {
     super(props);
+    this.state = {
+      budgetAmount_wan: 0,
+      budgetAmount_qian: 0,
+      budgetAmount_bai: 0,
+      budgetAmount_shi: 0,
+      budgetAmount_yuan: 0,
+    };
     this.formLayout = {
       labelCol: {span: 7},
       wrapperCol: {span: 13},
@@ -68,24 +75,20 @@ class CreateForm extends PureComponent {
   okHandle = () => {
     const {form, handleAdd} = this.props;
     form.validateFields((err, fieldsValue) => {
+      console.log('fieldsValue');
+      console.log(fieldsValue);
       if (err) return;
       form.resetFields();
       handleAdd(fieldsValue);
     });
   };
 
-  calcuate = (value) => {
-    const {form} = this.props;
-    const {getFieldValue, setFieldsValue} = form;
-    console.log('form');
-    console.log(form);
-    const budgetAmount_wan = getFieldValue('budgetAmount-wan');
-    console.log('budgetAmount_wan');
-    console.log(budgetAmount_wan);
-    const budgetAmount_qian = getFieldValue('budgetAmount-qian');
-    const budgetAmount_bai = getFieldValue('budgetAmount-bai');
-    const budgetAmount_shi = getFieldValue('budgetAmount-shi');
-    const budgetAmount_yuan = getFieldValue('budgetAmount-yuan');
+  handleOnChange = (value, type) => {
+    this.setState({
+
+    });
+    console.log('this.state');
+    console.log(this.state);
   };
 
   handleOnValuesChange = (props, changedValues, allValues) => {
@@ -96,6 +99,7 @@ class CreateForm extends PureComponent {
     console.log('allValues');
     console.log(allValues);
   };
+
   render() {
 
     const {modalVisible, form, handleAddModalVisible, workerData} = this.props;
@@ -114,7 +118,8 @@ class CreateForm extends PureComponent {
               initialValue: workerData.workerName,
             })(<Input disabled={true}/>)}
           </FormItem>
-          <FormItem key="budgetType" labelCol={{span: 5}} wrapperCol={{span: 15}} label="收支类型">
+          <FormItem onValuesChange={this.handleOnValuesChange} onFieldsChange={this.handleOnValuesChange}
+                    key="budgetType" labelCol={{span: 5}} wrapperCol={{span: 15}} label="收支类型">
             {
               form.getFieldDecorator('budgetType', {
                 rules: [{
@@ -129,20 +134,38 @@ class CreateForm extends PureComponent {
               )
             }
           </FormItem>
-          <FormItem onValuesChange={this.handleOnValuesChange} onFieldsChange={this.handleOnValuesChange()} key="budgetAmount" labelCol={{span: 5}} wrapperCol={{span: 15}} label="收支数额">
-            {form.getFieldDecorator('budgetAmount', {
-            })(<div>
-              <InputNumber size="small" style={{width:50}} min={0} max={100} defaultValue={0}/>
-              <span>万</span>
-              <InputNumber size="small" style={{width:50}} min={0} max={9} defaultValue={0}/>
-              <span>千</span>
-              <InputNumber size="small" style={{width:50}} min={0} max={9} defaultValue={0}/>
-              <span>百</span>
-              <InputNumber size="small" style={{width:50}} min={0} max={9} defaultValue={0}/>
-              <span>十</span>
-              <InputNumber size="small" style={{width:50}} min={0} max={9} defaultValue={0}/>
-              <span>元</span>
-            </div>)}
+          <FormItem onFieldsChange={this.handleOnValuesChange} key="budgetAmount" labelCol={{span: 5}}
+                    wrapperCol={{span: 15}} label="收支数额">
+            <FormItem style={{display: 'inline-block'}}>
+              {form.getFieldDecorator('budgetAmount-wan', {initialValue:0})(
+                <InputNumber size="small" style={{width: 50}} min={0} max={100} defaultValue={0}/>
+              )}
+            </FormItem>
+            <span style={{margin: 2}}>万</span>
+            <FormItem style={{display: 'inline-block'}}>
+              {form.getFieldDecorator('budgetAmount-qian', {initialValue:0})(<div>
+                <InputNumber size="small" style={{width: 50}} min={0} max={9} defaultValue={0}/>
+                <span style={{margin: 2}}>千</span>
+              </div>)}
+            </FormItem>
+            <FormItem style={{display: 'inline-block'}}>
+              {form.getFieldDecorator('budgetAmount-bai', {initialValue:0})(<div>
+                <InputNumber size="small" style={{width: 50}} min={0} max={9} defaultValue={0}/>
+                <span style={{margin: 2}}>百</span>
+              </div>)}
+            </FormItem>
+            <FormItem style={{display: 'inline-block'}}>
+              {form.getFieldDecorator('budgetAmount-shi', {initialValue:0})(<div>
+                <InputNumber size="small" style={{width: 50}} min={0} max={9} defaultValue={0}/>
+                <span style={{margin: 2}}>十</span>
+              </div>)}
+            </FormItem>
+            <FormItem style={{display: 'inline-block'}}>
+              {form.getFieldDecorator('budgetAmount-yuan', {initialValue:0})(<div>
+                <InputNumber size="small" style={{width: 50}} min={0} max={9} defaultValue={0}/>
+                <span style={{margin: 2}}>元</span>
+              </div>)}
+            </FormItem>
           </FormItem>
         </Form>
       </Modal>
