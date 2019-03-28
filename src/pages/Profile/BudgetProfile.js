@@ -1,11 +1,12 @@
 import React, {Component, PureComponent} from 'react';
 import {connect} from 'dva';
-import {Card, Badge, Table, Divider, Button, Input, Form, Calendar, DatePicker, Modal, message} from 'antd';
+import {Card, Badge, Table, Divider, Button, Input, InputNumber, Form, Select, DatePicker, Modal, message} from 'antd';
 import moment from 'moment';
 import DescriptionList from '@/components/DescriptionList';
 import PageHeaderWrapper from '@/components/PageHeaderWrapper';
 import styles from './BasicProfile.less';
 
+const {Option} = Select;
 const {MonthPicker, RangePicker} = DatePicker;
 const {Description} = DescriptionList;
 const budgetType = ['收入', '支出'];
@@ -51,43 +52,103 @@ const progressColumns = [
 ];
 
 function disabledDate(current) {
-  // Can not select days before today and today
   return current && current > moment().endOf('day');
 }
 
+@Form.create()
+class CreateForm extends PureComponent {
+  constructor(props) {
+    super(props);
+    this.formLayout = {
+      labelCol: {span: 7},
+      wrapperCol: {span: 13},
+    };
+  }
 
-const CreateForm = Form.create()(props => {
-  const {modalVisible, form, handleAdd, handleAddModalVisible, workerData} = props;
-  console.log(workerData);
-  const okHandle = () => {
+  okHandle = () => {
+    const {form, handleAdd} = this.props;
     form.validateFields((err, fieldsValue) => {
       if (err) return;
       form.resetFields();
       handleAdd(fieldsValue);
     });
   };
-  return (
-    <Modal
-      destroyOnClose
-      title="新增收支信息"
-      visible={modalVisible}
-      onOk={okHandle}
-      onCancel={() => handleAddModalVisible()}
-    >
-      <FormItem labelCol={{span: 5}} wrapperCol={{span: 15}} label="工人姓名">
-        {form.getFieldDecorator('workerName', {
-          rules: [{required: true, message: '请输入至少两个字的名字！', min: 2}],
-          initialValue: workerData.workerName,
-        })(<Input disabled={true}/>)}
-      </FormItem>
-      <FormItem labelCol={{span: 5}} wrapperCol={{span: 15}} label="工人姓名">
-        {form.getFieldDecorator('workerName', {
-          rules: [{required: true, message: '请输入至少两个字的名字！', min: 2}],
-        })(<Input placeholder="请输入"/>)}
-      </FormItem>
-    </Modal>
-  );
-});
+
+  calcuate = (value) => {
+    const {form} = this.props;
+    const {getFieldValue, setFieldsValue} = form;
+    console.log('form');
+    console.log(form);
+    const budgetAmount_wan = getFieldValue('budgetAmount-wan');
+    console.log('budgetAmount_wan');
+    console.log(budgetAmount_wan);
+    const budgetAmount_qian = getFieldValue('budgetAmount-qian');
+    const budgetAmount_bai = getFieldValue('budgetAmount-bai');
+    const budgetAmount_shi = getFieldValue('budgetAmount-shi');
+    const budgetAmount_yuan = getFieldValue('budgetAmount-yuan');
+  };
+
+  handleOnValuesChange = (props, changedValues, allValues) => {
+    console.log('props');
+    console.log(props);
+    console.log('changedValues');
+    console.log(changedValues);
+    console.log('allValues');
+    console.log(allValues);
+  };
+  render() {
+
+    const {modalVisible, form, handleAddModalVisible, workerData} = this.props;
+    return (
+      <Modal
+        width={600}
+        destroyOnClose
+        title="新增收支信息"
+        visible={modalVisible}
+        onOk={this.okHandle}
+        onCancel={() => handleAddModalVisible()}
+      >
+        <Form {...this.formLayout}>
+          <FormItem key="workerName" labelCol={{span: 5}} wrapperCol={{span: 15}} label="工人姓名">
+            {form.getFieldDecorator('workerName', {
+              initialValue: workerData.workerName,
+            })(<Input disabled={true}/>)}
+          </FormItem>
+          <FormItem key="budgetType" labelCol={{span: 5}} wrapperCol={{span: 15}} label="收支类型">
+            {
+              form.getFieldDecorator('budgetType', {
+                rules: [{
+                  required: true,
+                  message: '请选择收支类型',
+                }],
+              })(
+                <Select placeholder="请选择">
+                  <Option value="0">收入</Option>
+                  <Option value="1">支出</Option>
+                </Select>,
+              )
+            }
+          </FormItem>
+          <FormItem onValuesChange={this.handleOnValuesChange} onFieldsChange={this.handleOnValuesChange()} key="budgetAmount" labelCol={{span: 5}} wrapperCol={{span: 15}} label="收支数额">
+            {form.getFieldDecorator('budgetAmount', {
+            })(<div>
+              <InputNumber size="small" style={{width:50}} min={0} max={100} defaultValue={0}/>
+              <span>万</span>
+              <InputNumber size="small" style={{width:50}} min={0} max={9} defaultValue={0}/>
+              <span>千</span>
+              <InputNumber size="small" style={{width:50}} min={0} max={9} defaultValue={0}/>
+              <span>百</span>
+              <InputNumber size="small" style={{width:50}} min={0} max={9} defaultValue={0}/>
+              <span>十</span>
+              <InputNumber size="small" style={{width:50}} min={0} max={9} defaultValue={0}/>
+              <span>元</span>
+            </div>)}
+          </FormItem>
+        </Form>
+      </Modal>
+    );
+  }
+}
 
 @connect(({budgetProfile, loading}) => ({
   budgetProfile,
@@ -98,21 +159,14 @@ class BudgetProfile extends PureComponent {
   constructor(props) {
     super(props);
     this.state = {
-      workerData: {},
       addModalVisible: false,
     };
   }
 
   componentDidMount() {
     const {dispatch, match} = this.props;
+    console.log(this.props);
     const {params} = match;
-    this.setState(
-      {
-        workerData: {
-          workerId: params.id
-        }
-      }
-    );
     const queryParams = {
       year: thisYear,
       month: thisMonth,
@@ -128,12 +182,13 @@ class BudgetProfile extends PureComponent {
   }
 
   onMonthChange = (date, dateString) => {
-    const {dispatch} = this.props;
+    const {dispatch, match} = this.props;
+    const {params} = match;
     const ts = dateString.split('-');
     const year = ts[0];
     const month = ts[1];
     const queryParams = {
-      workerId: this.state.workerData.workerId,
+      workerId: params.id,
       year: year,
       month: month,
       orderByField: 'budget_date',
@@ -188,7 +243,7 @@ class BudgetProfile extends PureComponent {
     const parentMethods = {
       handleAdd: this.handleAdd,
       handleAddModalVisible: this.handleAddModalVisible,
-      workerData: this.state.workerData,
+      workerData: workerData,
     };
     return (
       <PageHeaderWrapper title="工人收支详情页" loading={loading}>

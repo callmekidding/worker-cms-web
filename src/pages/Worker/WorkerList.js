@@ -36,7 +36,7 @@ const getValue = obj =>
     .join(',');
 const statusMap = ['default', 'processing', 'success', 'error'];
 const workerStatus = ['在职', '离职'];
-const type = ['大工', '小工'];
+const workerType = ['大工', '小工'];
 
 const CreateForm = Form.create()(props => {
   const { modalVisible, form, handleAdd, handleModalVisible } = props;
@@ -88,23 +88,23 @@ class UpdateForm extends PureComponent {
       labelCol: { span: 7 },
       wrapperCol: { span: 13 },
     };
-  }
+  };
 
   renderContent = (formVals) => {
     const { form } = this.props;
     return (
       <Form {...this.formLayout} onSubmit={this.handleSubmit}>
 
-        <Form.Item key="name" {...this.formLayout} label="工人名称">
-          {form.getFieldDecorator('name', {
+        <Form.Item key="workerName" {...this.formLayout} label="工人名称">
+          {form.getFieldDecorator('workerName', {
             rules: [{ required: true, message: '请输入工人名称！' }],
-            initialValue: formVals.name,
+            initialValue: formVals.workerName,
           })(<Input placeholder="请输入"/>)}
         </Form.Item>,
-        <Form.Item key="type" {...this.formLayout} label="工人工种1">
+        <Form.Item key="workerType" {...this.formLayout} label="工人工种">
           {
-            form.getFieldDecorator('type', {
-              initialValue: `${formVals.type}`,
+            form.getFieldDecorator('workerType', {
+              initialValue: `${formVals.workerType}`,
               rules: [{
                 required: true,
                 message: '请选择工人工种',
@@ -168,29 +168,29 @@ class WorkerList extends PureComponent {
   columns = [
     {
       title: '工人id',
-      dataIndex: 'id',
+      dataIndex: 'workerId',
       render: text => <a onClick={() => this.previewItem(text)}>{text}</a>,
     },
     {
       title: '工人名称',
-      dataIndex: 'name',
+      dataIndex: 'workerName',
       render: text => <a onClick={() => this.previewItem(text)}>{text}</a>,
     },
     {
       title: '工人工种',
-      dataIndex: 'type',
+      dataIndex: 'workerType',
       filters: [
         {
-          text: type[0],
+          text: workerType[0],
           value: 0,
         },
         {
-          text: type[1],
+          text: workerType[1],
           value: 1,
         },
       ],
       render(val) {
-        return <Badge status={statusMap[val]} text={type[val]} />;
+        return <Badge status={statusMap[val]} text={workerType[val]} />;
       },
     },
     {
@@ -222,11 +222,11 @@ class WorkerList extends PureComponent {
         <Fragment>
           <a onClick={() => this.handleUpdateModalVisible(true, record)}>编辑</a>
           <Divider type="vertical" />
-          <a onClick={() => this.delete(record.id)}>删除</a>
+          <a onClick={() => this.delete(record.workerId)}>删除</a>
           <Divider type="vertical" />
-          <a onClick={() => this.attendanceProfile(record.id)}>出勤明细</a>
+          <a onClick={() => this.attendanceProfile(record.workerId)}>出勤明细</a>
           <Divider type="vertical" />
-          <a onClick={() => this.budgetProfile(record.id)}>收支明细</a>
+          <a onClick={() => this.budgetProfile(record.workerId)}>收支明细</a>
         </Fragment>
       ),
     },
