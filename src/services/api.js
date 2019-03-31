@@ -25,6 +25,21 @@ export async function queryWorkerBudget(params) {
    return request(`/api/workerBudget/pageWorkerBudgetList?${stringify(params)}`);
 }
 
+export async function queryWorkerAttendance(params) {
+  return request(`/api/workerAttendance/queryWorkerAttendance?${stringify(params)}`);
+}
+
+export async function insertOrUpdateWorkerAttendance(params) {
+  return request('/api/workerAttendance/insertOrUpdateWorkerAttendance', {
+    method: 'POST',
+    body: {
+      ...params,
+      method: 'post',
+    },
+  });
+}
+
+
 export async function removeRule(params) {
   return request('/api/rule', {
     method: 'POST',

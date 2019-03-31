@@ -188,7 +188,6 @@ class BudgetProfile extends PureComponent {
 
   componentDidMount() {
     const {dispatch, match} = this.props;
-    console.log(this.props);
     const {params} = match;
     const queryParams = {
       year: thisYear,

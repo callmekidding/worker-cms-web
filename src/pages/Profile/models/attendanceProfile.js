@@ -1,31 +1,41 @@
-import {queryWorkerAttendance, queryWorkerById} from '@/services/api';
+import {queryWorkerAttendance, queryWorkerById, insertOrUpdateWorkerAttendance} from '@/services/api';
 
 export default {
   namespace: 'attendanceProfile',
 
   state: {
-    budgetData:[],
-    budgetNote:{},
-    workerData:{},
+    attendanceData: {},
+    workerData: {},
   },
 
   effects: {
-    * queryWorkerBudget({payload}, {call, put}) {
+    * queryWorkerAttendance({payload}, {call, put}) {
       const {workerId} = payload;
       // const budgetResponse = yield call(queryWorkerBudget, payload);
-      const workerResponse = yield call(queryWorkerById, {workerId:workerId});
+      const workerResponse = yield call(queryWorkerById, {workerId: workerId});
+      const workerData = workerResponse.data;
+      const attendanceResponse = yield call(queryWorkerAttendance, payload);
+      const attendanceData = attendanceResponse.data;
       // const budgetData = budgetResponse.data.data;
       // const budgetNote = budgetResponse.data.note;
-      const workerData = workerResponse.data;
       const response = {
         // budgetData:budgetData,
         // budgetNote:budgetNote,
-        workerData:workerData,
+        workerData: workerData,
+        attendanceData: attendanceData,
       };
       yield put({
         type: 'show',
         payload: response,
       });
+    },
+    *insertOrUpdateWorkerAttendance({ payload, callback }, { call, put }) {
+      const response = yield call(insertOrUpdateWorkerAttendance, payload);
+      yield put({
+        type: 'show',
+        payload: response,
+      });
+      if (callback) callback();
     },
   },
 

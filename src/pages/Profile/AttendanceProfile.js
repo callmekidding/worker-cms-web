@@ -1,6 +1,20 @@
 import React, {Component, PureComponent} from 'react';
 import {connect} from 'dva';
-import {Card, Badge, Table, Divider, Calendar, Form, Modal, Input, Checkbox} from 'antd';
+import {
+  Card,
+  Badge,
+  Menu,
+  Divider,
+  Calendar,
+  Form,
+  Modal,
+  Input,
+  Checkbox,
+  Button,
+  Dropdown,
+  Icon,
+  message
+} from 'antd';
 import DescriptionList from '@/components/DescriptionList';
 import PageHeaderWrapper from '@/components/PageHeaderWrapper';
 import moment from 'moment';
@@ -11,12 +25,9 @@ import {getTimeDistance} from '@/utils/utils';
 const {Description} = DescriptionList;
 const FormItem = Form.Item;
 const CheckboxGroup = Checkbox.Group;
-const thisMonth = getTimeDistance('month');
-const thisMonthDayAmount = thisMonth[1].date() - thisMonth[0].date();
-const checkAllList = thisMonthDayAmount => {
 
-};
 
+const workerTypeMap = ['大工', '小工'];
 
 @Form.create()
 class CreateForm extends PureComponent {
@@ -67,38 +78,69 @@ class AttendanceProfile extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      addModalVisible: false,
       checkedList: [],
-      indeterminate: true,
       checkAll: false,
+      monthRange: [],
+      monthDayAmount: 0,
+      checkAllList: [],
     };
   }
 
   componentDidMount() {
+    const thisMonthRange = getTimeDistance('month');
+    const thisMonthDayAmount = thisMonthRange[1].date() - thisMonthRange[0].date();
+    const thisYear = thisMonthRange[0].year();
+    const thisMonth = thisMonthRange[0].month() + 1;
+    const checkAllList = this.fillArray(thisYear, thisMonth, thisMonthDayAmount);
     const {dispatch, match} = this.props;
     const {params} = match;
-
+    this.setState({
+      monthRange: thisMonthRange,
+      monthDayAmount: thisMonthDayAmount,
+      checkAllList: checkAllList,
+    });
+    const queryParams = {
+      attendanceYear: thisYear,
+      attendanceMonth: thisMonth,
+      workerId: params.id,
+    };
     dispatch({
-      type: 'profile/queryWorkerBudget',
-      payload: params.id || '1000000000',
+      type: 'attendanceProfile/queryWorkerAttendance',
+      payload: queryParams,
     });
   };
 
-  dateCellRender = (value, days, month, year) => {
-    const date = value.date();
-    const fullDate = value.year() + '-' + (value.month() + 1) + '-' + date;
+  fillArray = (year, month, index) => {
+    let array = new Array(index);
+    for (let i = 0; i < index; i++) {
+      array[i] = year + '-' + (month + 1) + '-' + (i + 1);
+    }
+    return array;
+  };
+
+  dateCellRender = (cell, days, month, year) => {
+    const {monthRange} = this.state;
+    const date = cell.date();
+    const today = moment().endOf('day');
+    const cellYear = cell.year();
+    const cellMonth = cell.month() + 1;
+    const fullDate = cellYear + '-' + cellMonth + '-' + date;
     let background;
-    let thisMonth = null;
-    // 当前月加背景色
-    if (year === value.year() && month === (value.month() + 1)) {
+    let checkBox = null;
+    // 判断是否有多选框
+    if (cell >= monthRange[0] && cell <= monthRange[1] && cell <= today) {
+      const checked = this.state.checkAll || this.state.checkedList.indexOf(fullDate) >= 0;
+      checkBox = <Checkbox checked={checked} value={fullDate} onChange={this.handleOnChange}> </Checkbox>;
+    }
+    // 判断是否加出勤样式
+    if (year === cellYear && month === cellMonth && date <= today.date()) {
       const contains = days && days.indexOf(fullDate) >= 0;
       background = contains ? '#09cc33' : '#f30920';
-      const checked = this.state.checkAll || this.state.checkedList.indexOf(date) >= 0;
-      thisMonth = <Checkbox checked={checked} value={date} onChange={this.handleOnChange}> </Checkbox>;
     }
+
     return (
       <div className="ant-fullcalendar-date">
-        {thisMonth}
+        {checkBox}
         <div className="ant-fullcalendar-value"
              style={{fontSize: '20px', color: background}}>{date}</div>
       </div>
@@ -108,52 +150,100 @@ class AttendanceProfile extends Component {
   handleOnChange = (e) => {
     const checkedListSlice = this.state.checkedList.slice();
     const value = e.target.value;
+    const {monthDayAmount} = this.state;
     if (e.target.checked && checkedListSlice.indexOf(value) < 0) {
       checkedListSlice.push(value);
     } else if (!e.target.checked && checkedListSlice.indexOf(value) >= 0) {
       checkedListSlice.splice(checkedListSlice.indexOf(value), 1);
     }
+
     this.setState({
       checkedList: checkedListSlice,
-      checkAll: checkedListSlice.length === thisMonthDayAmount
+      checkAll: checkedListSlice.length === monthDayAmount,
     });
-    console.log('this.state');
-    console.log(this.state);
+
   };
 
   handleOnSelect = (value) => {
+
+  };
+
+  handleOnPanelChange = (select, mode) => {
+    const year = select.year();
+    const month = select.month() + 1;
+    console.log(month);
+    const lastDay = select.endOf('month');
+    const firstDay = moment(`${year}-${fixedZero(month)}-01 00:00:00`);
+    const {dispatch, match} = this.props;
+    const {params} = match;
+    const monthRange = [firstDay, lastDay];
+    const monthDayAmount = lastDay.date() - firstDay.date() + 1;
+    const checkAllList = this.fillArray(year, month, monthDayAmount);
     this.setState({
-      addModalVisible: true,
+      monthRange: monthRange,
+      monthDayAmount: monthDayAmount,
+      checkAllList: checkAllList,
+    });
+    const queryParams = {
+      attendanceYear: year,
+      attendanceMonth: month,
+      workerId: params.id,
+    };
+    dispatch({
+      type: 'attendanceProfile/queryWorkerAttendance',
+      payload: queryParams,
     });
   };
 
 
   disabledDate = (current) => {
-    return current < thisMonth[0] || current > thisMonth[1];
+    return current < this.state.monthRange[0] || current > this.state.monthRange[1];
   };
 
-  onChange = (checkedList) => {
+  onCheckAllChange = (e) => {
+    const {checkAllList} = this.state;
     this.setState({
-      checkedList,
-      indeterminate: !!checkedList.length && (checkedList.length < thisMonthDayAmount),
-      checkAll: checkedList.length === thisMonthDayAmount,
+      checkedList: e.target.checked ? checkAllList : [],
+      checkAll: e.target.checked,
     });
   };
-  onCheckAllChange = (e) => {
+
+  handleMenuClick = e => {
+    const {dispatch, match} = this.props;
+    const {params} = match;
+
+    const {checkedList, monthRange} = this.state;
+    const firstDay = monthRange[0];
+    const year = firstDay.year();
+    const month = firstDay.month() + 1;
+    const payload = {
+      workerId: params.id,
+      attendanceType: e.key,
+      attendanceDayList: checkedList,
+      attendanceYear: year,
+      attendanceMonth: month,
+    };
+    dispatch({
+      type: 'attendanceProfile/insertOrUpdateWorkerAttendance',
+      payload: payload,
+    });
+    message.success('操作成功');
     this.setState({
-      // checkedList: e.target.checked ? plainOptions : [],
-      indeterminate: false,
-      checkAll: e.target.checked,
+      checkedList:[],
     });
   };
 
 
   render() {
     const {attendanceProfile = {}, loading} = this.props;
-    const {addModalVisible} = this.state;
-    const days = ['2019-3-1', '2019-3-2', '2019-3-5', '2019-3-12', '2019-3-7', '2019-3-10', '2019-3-25', '2019-3-19', '2019-3-26', '2019-3-15', '2019-3-22', '2019-3-21'];
-    const month = 3;
-    const year = 2019;
+    const {attendanceData = {}, workerData = {}} = attendanceProfile;
+    const {attendanceYear, attendanceMonth, attendanceDayList} = attendanceData;
+    const menu = (
+      <Menu onClick={this.handleMenuClick}>
+        <Menu.Item key="add">设为出勤</Menu.Item>
+        <Menu.Item key="remove">设为缺勤</Menu.Item>
+      </Menu>
+    );
     const titleExpand = (
       <div>
         <span>出勤详情</span>
@@ -168,31 +258,36 @@ class AttendanceProfile extends Component {
     );
 
     const extraContent = (
-      <div style={{borderBottom: '1px solid #E9E9E9'}}>
+      <div>
         <Checkbox
-          indeterminate={this.state.indeterminate}
           onChange={this.onCheckAllChange}
           checked={this.state.checkAll}
         >
           全选
         </Checkbox>
+        <Dropdown overlay={menu}>
+          <Button>
+            批量操作 <Icon type="down"/>
+          </Button>
+        </Dropdown>
       </div>);
     return (
       <PageHeaderWrapper title="工人收支详情页" loading={loading}>
         <Card bordered={false}>
           <DescriptionList size="large" title="工人信息" style={{marginBottom: 32}}>
-            <Description term="工人姓名">{}</Description>
-            <Description term="工人工种">{}</Description>
+            <Description term="工人姓名">{workerData.workerName}</Description>
+            <Description term="工人工种">{workerTypeMap[workerData.workerType]}</Description>
           </DescriptionList>
         </Card>
         <Divider style={{marginBottom: 32}}/>
         <Card title={titleExpand} bordered={false} extra={extraContent}>
           <Calendar disabledDate={this.disabledDate}
                     onSelect={this.handleOnSelect}
-                    dateFullCellRender={e => this.dateCellRender(e, days, month, year)}
+                    onPanelChange={this.handleOnPanelChange}
+                    dateFullCellRender={e => this.dateCellRender(e, attendanceDayList, attendanceMonth, attendanceYear)
+                    }
           />
         </Card>
-        <CheckboxGroup value={this.state.checkedList} onChange={this.onChange}/>
       </PageHeaderWrapper>
     );
   }
