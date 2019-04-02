@@ -29,6 +29,20 @@ export async function queryWorkerAttendance(params) {
   return request(`/api/workerAttendance/queryWorkerAttendance?${stringify(params)}`);
 }
 
+export async function addWorkerBudget(params) {
+  return request('/api/workerBudget/addWorkerBudget', {
+    method: 'POST',
+    body: {
+      ...params,
+      method: 'post',
+    },
+  });
+}
+
+export async function deleteWorkerBudget(params) {
+  return request(`/api/workerBudget/deleteWorkerBudget?${stringify(params)}`);
+}
+
 export async function insertOrUpdateWorkerAttendance(params) {
   return request('/api/workerAttendance/insertOrUpdateWorkerAttendance', {
     method: 'POST',

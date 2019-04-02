@@ -74,17 +74,14 @@ class CreateForm extends PureComponent {
   attendanceProfile,
   loading: loading.effects['attendanceProfile/queryWorkerBudget'],
 }))
-class AttendanceProfile extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      checkedList: [],
-      checkAll: false,
-      monthRange: [],
-      monthDayAmount: 0,
-      checkAllList: [],
-    };
-  }
+class AttendanceProfile extends PureComponent {
+  state = {
+    checkedList: [],
+    checkAll: false,
+    monthRange: [],
+    monthDayAmount: 0,
+    checkAllList: [],
+  };
 
   componentDidMount() {
     const thisMonthRange = getTimeDistance('month');
@@ -113,18 +110,36 @@ class AttendanceProfile extends Component {
   fillArray = (year, month, index) => {
     let array = new Array(index);
     for (let i = 0; i < index; i++) {
-      array[i] = year + '-' + (month + 1) + '-' + (i + 1);
+      array[i] = year + '-' + month + '-' + (i + 1);
     }
     return array;
   };
 
   dateCellRender = (cell, days, month, year) => {
+    // console.log('cell');
+    // console.log(cell);
+    // console.log('days');
+    // console.log(days);
+    // console.log('year');
+    // console.log(year);
+    // console.log('month');
+    // console.log(month);
     const {monthRange} = this.state;
     const date = cell.date();
     const today = moment().endOf('day');
     const cellYear = cell.year();
     const cellMonth = cell.month() + 1;
     const fullDate = cellYear + '-' + cellMonth + '-' + date;
+    // console.log('cellMonth');
+    // console.log(cellMonth);
+    // console.log('fullDate');
+    // console.log(fullDate);
+    // console.log('judge year');
+    // console.log(year === cellYear);
+    // console.log('judge month');
+    // console.log(month === cellMonth);
+    // console.log('judge date1');
+    // console.log(cell <= today);
     let background;
     let checkBox = null;
     // 判断是否有多选框
@@ -133,7 +148,7 @@ class AttendanceProfile extends Component {
       checkBox = <Checkbox checked={checked} value={fullDate} onChange={this.handleOnChange}> </Checkbox>;
     }
     // 判断是否加出勤样式
-    if (year === cellYear && month === cellMonth && date <= today.date()) {
+    if (year === cellYear && month === cellMonth && cell <= today) {
       const contains = days && days.indexOf(fullDate) >= 0;
       background = contains ? '#09cc33' : '#f30920';
     }
@@ -171,7 +186,6 @@ class AttendanceProfile extends Component {
   handleOnPanelChange = (select, mode) => {
     const year = select.year();
     const month = select.month() + 1;
-    console.log(month);
     const lastDay = select.endOf('month');
     const firstDay = moment(`${year}-${fixedZero(month)}-01 00:00:00`);
     const {dispatch, match} = this.props;
@@ -209,28 +223,47 @@ class AttendanceProfile extends Component {
   };
 
   handleMenuClick = e => {
-    const {dispatch, match} = this.props;
-    const {params} = match;
+    const key = e.key;
+    const props = this.props;
+    const state = this.state;
+    let content = '确认设置为';
+    if (key === 'remove') {
+      content += '缺勤吗？';
+    } else if (key === 'add') {
+      content += '出勤吗？';
+    }
+    Modal.confirm({
+      title: '批量操作',
+      content: content,
+      okText: '确认',
+      cancelText: '取消',
+      onOk: () => {
+        const {dispatch, match} = this.props;
+        const {params} = match;
 
-    const {checkedList, monthRange} = this.state;
-    const firstDay = monthRange[0];
-    const year = firstDay.year();
-    const month = firstDay.month() + 1;
-    const payload = {
-      workerId: params.id,
-      attendanceType: e.key,
-      attendanceDayList: checkedList,
-      attendanceYear: year,
-      attendanceMonth: month,
-    };
-    dispatch({
-      type: 'attendanceProfile/insertOrUpdateWorkerAttendance',
-      payload: payload,
+        const {checkedList, monthRange} = this.state;
+        const firstDay = monthRange[0];
+        const year = firstDay.year();
+        const month = firstDay.month() + 1;
+        const payload = {
+          workerId: params.id,
+          attendanceType: e.key,
+          attendanceDayList: checkedList,
+          attendanceYear: year,
+          attendanceMonth: month,
+        };
+        dispatch({
+          type: 'attendanceProfile/insertOrUpdateWorkerAttendance',
+          payload: payload,
+        });
+        message.success('设置成功');
+        this.setState({
+          checkedList: [],
+          checkAll: false,
+        });
+      },
     });
-    message.success('操作成功');
-    this.setState({
-      checkedList:[],
-    });
+
   };
 
 

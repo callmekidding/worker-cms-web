@@ -55,7 +55,7 @@ const CreateForm = Form.create()(props => {
       onOk={okHandle}
       onCancel={() => handleModalVisible()}
     >
-      <FormItem labelCol={{ span: 5 }} wrapperCol={{ span: 15 }} label="描述">
+      <FormItem key="workerName" labelCol={{ span: 5 }} wrapperCol={{ span: 15 }} label="描述">
         {form.getFieldDecorator('desc', {
           rules: [{ required: true, message: '请输入至少五个字符的规则描述！', min: 5 }],
         })(<Input placeholder="请输入"/>)}
@@ -169,16 +169,19 @@ class WorkerList extends PureComponent {
     {
       title: '工人id',
       dataIndex: 'workerId',
+      key: 'workerId',
       render: text => <a onClick={() => this.previewItem(text)}>{text}</a>,
     },
     {
       title: '工人名称',
       dataIndex: 'workerName',
+      key: 'workerName',
       render: text => <a onClick={() => this.previewItem(text)}>{text}</a>,
     },
     {
       title: '工人工种',
       dataIndex: 'workerType',
+      key: 'workerType',
       filters: [
         {
           text: workerType[0],
@@ -196,6 +199,7 @@ class WorkerList extends PureComponent {
     {
       title: '状态',
       dataIndex: 'workerStatus',
+      key: 'workerStatus',
       filters: [
         {
           text: workerStatus[0],
@@ -213,11 +217,13 @@ class WorkerList extends PureComponent {
     {
       title: '入职时间',
       dataIndex: 'hiredate',
+      key: 'hiredate',
       sorter: true,
       render: val => <span>{moment(val).format('YYYY-MM-DD HH:mm:ss')}</span>,
     },
     {
       title: '操作',
+      key: 'operation',
       render: (text, record) => (
         <Fragment>
           <a onClick={() => this.handleUpdateModalVisible(true, record)}>编辑</a>
@@ -406,13 +412,13 @@ class WorkerList extends PureComponent {
       <Form onSubmit={this.handleSearch} layout="inline">
         <Row gutter={{ md: 8, lg: 24, xl: 48 }}>
           <Col md={8} sm={24}>
-            <FormItem label="工人名称">
-              {getFieldDecorator('name')(<Input placeholder="请输入"/>)}
+            <FormItem key="workerName" label="工人名称">
+              {getFieldDecorator('workerName')(<Input placeholder="请输入"/>)}
             </FormItem>
           </Col>
           <Col md={8} sm={24}>
-            <FormItem label="工人状态">
-              {getFieldDecorator('status')(
+            <FormItem key="workerStatus" label="工人状态">
+              {getFieldDecorator('workerStatus')(
                 <Select placeholder="请选择" style={{ width: '100%' }}>
                   <Option value="0">在职</Option>
                   <Option value="1">离职</Option>
