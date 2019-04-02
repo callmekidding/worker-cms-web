@@ -1,5 +1,5 @@
-import React, { PureComponent, Fragment } from 'react';
-import { connect } from 'dva';
+import React, {PureComponent, Fragment} from 'react';
+import {connect} from 'dva';
 import moment from 'moment';
 import router from 'umi/router';
 import {
@@ -27,8 +27,8 @@ import PageHeaderWrapper from '@/components/PageHeaderWrapper';
 import styles from './WorkerList.less';
 
 const FormItem = Form.Item;
-const { TextArea } = Input;
-const { Option } = Select;
+const {TextArea} = Input;
+const {Option} = Select;
 const RadioGroup = Radio.Group;
 const getValue = obj =>
   Object.keys(obj)
@@ -36,11 +36,16 @@ const getValue = obj =>
     .join(',');
 const statusMap = ['default', 'processing', 'success', 'error'];
 const workerStatus = ['在职', '离职'];
-const workerType = ['大工', '小工'];
+const workerType = ['管理层', '大工', '小工'];
 
 const CreateForm = Form.create()(props => {
-  const { modalVisible, form, handleAdd, handleModalVisible } = props;
-  const okHandle = () => {
+
+  const formLayout = {
+    labelCol: {span: 7},
+    wrapperCol: {span: 13},
+  };
+  const {modalVisible, form, handleAdd, handleModalVisible} = props;
+  const handleOnOk = () => {
     form.validateFields((err, fieldsValue) => {
       if (err) return;
       form.resetFields();
@@ -52,14 +57,44 @@ const CreateForm = Form.create()(props => {
       destroyOnClose
       title="添加工人信息"
       visible={modalVisible}
-      onOk={okHandle}
+      onOk={handleOnOk}
       onCancel={() => handleModalVisible()}
     >
-      <FormItem key="workerName" labelCol={{ span: 5 }} wrapperCol={{ span: 15 }} label="描述">
-        {form.getFieldDecorator('desc', {
-          rules: [{ required: true, message: '请输入至少五个字符的规则描述！', min: 5 }],
-        })(<Input placeholder="请输入"/>)}
-      </FormItem>
+      <Form {...formLayout}>
+        <FormItem key="workerName" label="工人名称">
+          {form.getFieldDecorator('workerName', {
+            rules: [{required: true, message: '请输入工人名称！', min: 2}],
+          })(<Input placeholder="请输入"/>)}
+        </FormItem>
+        <Form.Item key="workerType" {...formLayout} label="工人工种">
+          {
+            form.getFieldDecorator('workerType', {
+              rules: [{
+                required: true,
+                message: '请选择工人工种',
+              }],
+            })(
+              <Select placeholder="请选择">
+                <Option
+                  value="0"
+                >
+                  管理层
+                </Option>
+                <Option
+                  value="1"
+                >
+                  大工
+                </Option>
+                <Option
+                  value="2"
+                >
+                  小工
+                </Option>
+              </Select>,
+            )
+          }
+        </Form.Item>
+      </Form>
     </Modal>
   );
 });
@@ -79,25 +114,26 @@ class UpdateForm extends PureComponent {
 
     this.state = {
       formVals: {
-        name: props.values.name,
-        type: props.values.type,
+        workerName: props.values.workerName,
+        workerType: props.values.workerType,
+        workerId: props.values.workerId,
       },
     };
 
     this.formLayout = {
-      labelCol: { span: 7 },
-      wrapperCol: { span: 13 },
+      labelCol: {span: 7},
+      wrapperCol: {span: 13},
     };
   };
 
   renderContent = (formVals) => {
-    const { form } = this.props;
+    const {form} = this.props;
     return (
       <Form {...this.formLayout} onSubmit={this.handleSubmit}>
 
         <Form.Item key="workerName" {...this.formLayout} label="工人名称">
           {form.getFieldDecorator('workerName', {
-            rules: [{ required: true, message: '请输入工人名称！' }],
+            rules: [{required: true, message: '请输入工人名称！'}],
             initialValue: formVals.workerName,
           })(<Input placeholder="请输入"/>)}
         </Form.Item>,
@@ -114,10 +150,15 @@ class UpdateForm extends PureComponent {
                 <Option
                   value="0"
                 >
-                  大工
+                  管理层
                 </Option>
                 <Option
                   value="1"
+                >
+                  大工
+                </Option>
+                <Option
+                  value="2"
                 >
                   小工
                 </Option>
@@ -129,19 +170,41 @@ class UpdateForm extends PureComponent {
     );
   };
 
-  render() {
-    const { updateModalVisible, handleUpdateModalVisible, values } = this.props;
-    const { formVals } = this.state;
+  handleUpdate = fieldsValue => {
+    const {dispatch} = this.props;
+    console.log('fieldsValue');
+    console.log(fieldsValue);
+    dispatch({
+      type: 'worker/updateWorker',
+      payload: {
+        ...fieldsValue
+      },
+    });
+    message.success('添加成功');
+    this.handleAddModalVisible();
+  };
 
+
+  render() {
+    const {updateModalVisible, handleUpdateModalVisible, values, form} = this.props;
+    const {formVals} = this.state;
+    const handleOnUpdateOk = () => {
+      form.validateFields((err, fieldsValue) => {
+        if (err) return;
+        form.resetFields();
+        this.handleUpdate(fieldsValue);
+      });
+    };
     return (
       <Modal
         width={640}
-        bodyStyle={{ padding: '32px 40px 48px' }}
+        bodyStyle={{padding: '32px 40px 48px'}}
         destroyOnClose
-        title="规则配置"
+        title="编辑工人信息"
         visible={updateModalVisible}
         onCancel={() => handleUpdateModalVisible(false, values)}
         afterClose={() => handleUpdateModalVisible()}
+        onOk={handleOnUpdateOk}
       >
         {this.renderContent(formVals)}
       </Modal>
@@ -150,7 +213,7 @@ class UpdateForm extends PureComponent {
 }
 
 /* eslint react/no-multi-comp:0 */
-@connect(({ worker, loading }) => ({
+@connect(({worker, loading}) => ({
   worker,
   loading: loading.models.worker,
 }))
@@ -167,16 +230,14 @@ class WorkerList extends PureComponent {
 
   columns = [
     {
-      title: '工人id',
+      title: '工人编号',
       dataIndex: 'workerId',
       key: 'workerId',
-      render: text => <a onClick={() => this.previewItem(text)}>{text}</a>,
     },
     {
       title: '工人名称',
       dataIndex: 'workerName',
       key: 'workerName',
-      render: text => <a onClick={() => this.previewItem(text)}>{text}</a>,
     },
     {
       title: '工人工种',
@@ -193,33 +254,8 @@ class WorkerList extends PureComponent {
         },
       ],
       render(val) {
-        return <Badge status={statusMap[val]} text={workerType[val]} />;
+        return <Badge status={statusMap[val]} text={workerType[val]}/>;
       },
-    },
-    {
-      title: '状态',
-      dataIndex: 'workerStatus',
-      key: 'workerStatus',
-      filters: [
-        {
-          text: workerStatus[0],
-          value: 0,
-        },
-        {
-          text: workerStatus[1],
-          value: 1,
-        },
-      ],
-      render(val) {
-        return <Badge status={statusMap[val]} text={workerStatus[val]} />;
-      },
-    },
-    {
-      title: '入职时间',
-      dataIndex: 'hiredate',
-      key: 'hiredate',
-      sorter: true,
-      render: val => <span>{moment(val).format('YYYY-MM-DD HH:mm:ss')}</span>,
     },
     {
       title: '操作',
@@ -227,11 +263,11 @@ class WorkerList extends PureComponent {
       render: (text, record) => (
         <Fragment>
           <a onClick={() => this.handleUpdateModalVisible(true, record)}>编辑</a>
-          <Divider type="vertical" />
+          <Divider type="vertical"/>
           <a onClick={() => this.delete(record.workerId)}>删除</a>
-          <Divider type="vertical" />
+          <Divider type="vertical"/>
           <a onClick={() => this.attendanceProfile(record.workerId)}>出勤明细</a>
-          <Divider type="vertical" />
+          <Divider type="vertical"/>
           <a onClick={() => this.budgetProfile(record.workerId)}>收支明细</a>
         </Fragment>
       ),
@@ -239,18 +275,18 @@ class WorkerList extends PureComponent {
   ];
 
   componentDidMount() {
-    const { dispatch } = this.props;
+    const {dispatch} = this.props;
     dispatch({
-      type: 'worker/query',
+      type: 'worker/queryWorker',
     });
   }
 
   handleStandardTableChange = (pagination, filtersArg, sorter) => {
-    const { dispatch } = this.props;
-    const { formValues } = this.state;
+    const {dispatch} = this.props;
+    const {formValues} = this.state;
 
     const filters = Object.keys(filtersArg).reduce((obj, key) => {
-      const newObj = { ...obj };
+      const newObj = {...obj};
       newObj[key] = getValue(filtersArg[key]);
       return newObj;
     }, {});
@@ -266,7 +302,7 @@ class WorkerList extends PureComponent {
     }
 
     dispatch({
-      type: 'worker/query',
+      type: 'worker/queryWorker',
       payload: params,
     });
   };
@@ -276,27 +312,21 @@ class WorkerList extends PureComponent {
   };
 
   handleFormReset = () => {
-    const { form, dispatch } = this.props;
+    const {form, dispatch} = this.props;
     form.resetFields();
     this.setState({
       formValues: {},
     });
     dispatch({
-      type: 'worker/query',
+      type: 'worker/queryWorker',
       payload: {},
     });
   };
 
-  toggleForm = () => {
-    const { expandForm } = this.state;
-    this.setState({
-      expandForm: !expandForm,
-    });
-  };
 
   handleMenuClick = e => {
-    const { dispatch } = this.props;
-    const { selectedRows } = this.state;
+    const {dispatch} = this.props;
+    const {selectedRows} = this.state;
 
     if (selectedRows.length === 0) return;
     switch (e.key) {
@@ -326,22 +356,19 @@ class WorkerList extends PureComponent {
 
   handleSearch = e => {
     e.preventDefault();
-
-    const { dispatch, form } = this.props;
-
+    const {dispatch, form} = this.props;
     form.validateFields((err, fieldsValue) => {
       if (err) return;
 
       const values = {
         ...fieldsValue,
-        updatedAt: fieldsValue.updatedAt && fieldsValue.updatedAt.valueOf(),
       };
       this.setState({
         formValues: values,
       });
 
       dispatch({
-        type: 'worker/query',
+        type: 'worker/queryWorker',
         payload: values,
       });
     });
@@ -373,11 +400,11 @@ class WorkerList extends PureComponent {
   };
 
   handleAdd = fields => {
-    const { dispatch } = this.props;
+    const {dispatch} = this.props;
     dispatch({
-      type: 'rule/add',
+      type: 'worker/addWorker',
       payload: {
-        desc: fields.desc,
+        ...fields
       },
     });
 
@@ -386,8 +413,8 @@ class WorkerList extends PureComponent {
   };
 
   handleUpdate = fields => {
-    const { dispatch } = this.props;
-    const { formValues } = this.state;
+    const {dispatch} = this.props;
+    const {formValues} = this.state;
     dispatch({
       type: 'rule/update',
       payload: {
@@ -406,22 +433,24 @@ class WorkerList extends PureComponent {
 
   renderSimpleForm() {
     const {
-      form: { getFieldDecorator },
+      form: {getFieldDecorator},
     } = this.props;
     return (
       <Form onSubmit={this.handleSearch} layout="inline">
-        <Row gutter={{ md: 8, lg: 24, xl: 48 }}>
+        <Row gutter={{md: 8, lg: 24, xl: 48}}>
           <Col md={8} sm={24}>
             <FormItem key="workerName" label="工人名称">
               {getFieldDecorator('workerName')(<Input placeholder="请输入"/>)}
             </FormItem>
           </Col>
           <Col md={8} sm={24}>
-            <FormItem key="workerStatus" label="工人状态">
-              {getFieldDecorator('workerStatus')(
-                <Select placeholder="请选择" style={{ width: '100%' }}>
-                  <Option value="0">在职</Option>
-                  <Option value="1">离职</Option>
+            <FormItem key="workerType" label="工人工种">
+              {getFieldDecorator('workerType')(
+                <Select placeholder="请选择" style={{width: '100%'}}>
+                  <Option value="">全部</Option>
+                  <Option value="0">管理层</Option>
+                  <Option value="1">大工</Option>
+                  <Option value="2">小工</Option>
                 </Select>,
               )}
             </FormItem>
@@ -431,12 +460,9 @@ class WorkerList extends PureComponent {
               <Button type="primary" htmlType="submit">
                 查询
               </Button>
-              <Button style={{ marginLeft: 8 }} onClick={this.handleFormReset}>
+              <Button style={{marginLeft: 8}} onClick={this.handleFormReset}>
                 重置
               </Button>
-              <a style={{ marginLeft: 8 }} onClick={this.toggleForm}>
-                展开 <Icon type="down"/>
-              </a>
             </span>
           </Col>
         </Row>
@@ -444,91 +470,14 @@ class WorkerList extends PureComponent {
     );
   }
 
-  renderAdvancedForm() {
-    const {
-      form: { getFieldDecorator },
-    } = this.props;
-    return (
-      <Form onSubmit={this.handleSearch} layout="inline">
-        <Row gutter={{ md: 8, lg: 24, xl: 48 }}>
-          <Col md={8} sm={24}>
-            <FormItem label="规则名称">
-              {getFieldDecorator('name')(<Input placeholder="请输入"/>)}
-            </FormItem>
-          </Col>
-          <Col md={8} sm={24}>
-            <FormItem label="使用状态">
-              {getFieldDecorator('status')(
-                <Select placeholder="请选择" style={{ width: '100%' }}>
-                  <Option value="0">关闭</Option>
-                  <Option value="1">运行中</Option>
-                </Select>,
-              )}
-            </FormItem>
-          </Col>
-          <Col md={8} sm={24}>
-            <FormItem label="调用次数">
-              {getFieldDecorator('number')(<InputNumber style={{ width: '100%' }}/>)}
-            </FormItem>
-          </Col>
-        </Row>
-        <Row gutter={{ md: 8, lg: 24, xl: 48 }}>
-          <Col md={8} sm={24}>
-            <FormItem label="更新日期">
-              {getFieldDecorator('date')(
-                <DatePicker style={{ width: '100%' }} placeholder="请输入更新日期"/>,
-              )}
-            </FormItem>
-          </Col>
-          <Col md={8} sm={24}>
-            <FormItem label="使用状态">
-              {getFieldDecorator('status3')(
-                <Select placeholder="请选择" style={{ width: '100%' }}>
-                  <Option value="0">关闭</Option>
-                  <Option value="1">运行中</Option>
-                </Select>,
-              )}
-            </FormItem>
-          </Col>
-          <Col md={8} sm={24}>
-            <FormItem label="使用状态">
-              {getFieldDecorator('status4')(
-                <Select placeholder="请选择" style={{ width: '100%' }}>
-                  <Option value="0">关闭</Option>
-                  <Option value="1">运行中</Option>
-                </Select>,
-              )}
-            </FormItem>
-          </Col>
-        </Row>
-        <div style={{ overflow: 'hidden' }}>
-          <div style={{ marginBottom: 24 }}>
-            <Button type="primary" htmlType="submit">
-              查询
-            </Button>
-            <Button style={{ marginLeft: 8 }} onClick={this.handleFormReset}>
-              重置
-            </Button>
-            <a style={{ marginLeft: 8 }} onClick={this.toggleForm}>
-              收起 <Icon type="up"/>
-            </a>
-          </div>
-        </div>
-      </Form>
-    );
-  }
-
   renderForm() {
-    const { expandForm } = this.state;
-    return expandForm ? this.renderAdvancedForm() : this.renderSimpleForm();
+    return this.renderSimpleForm();
   }
 
   render() {
-    const {
-      worker: { data:{ data } },
-      loading,
-    } = this.props;
-    const { selectedRows, modalVisible, updateModalVisible, stepFormValues } = this.state;
+    const {worker, loading} = this.props;
+    const {data} = worker;
+    const {selectedRows, modalVisible, updateModalVisible, stepFormValues} = this.state;
     const menu = (
       <Menu onClick={this.handleMenuClick} selectedKeys={[]}>
         <Menu.Item key="remove">删除</Menu.Item>
@@ -566,7 +515,7 @@ class WorkerList extends PureComponent {
             <StandardTable
               selectedRows={selectedRows}
               loading={loading}
-              data={{list: data.data}}
+              data={{list: data}}
               columns={this.columns}
               onSelectRow={this.handleSelectRows}
               onChange={this.handleStandardTableChange}

@@ -533,8 +533,6 @@ class BudgetProfile extends PureComponent {
     const {budgetProfile = {}, loading} = this.props;
     const {budgetData = [], budgetNote = {}, workerData = {}} = budgetProfile;
     const {addModalVisible, updateModalVisible, rowValues} = this.state;
-    console.log('rowValues');
-    console.log(rowValues);
     const sum = budgetNote.total;
     const extraContent = (
       <div className={styles.extraContent}>

@@ -1,43 +1,62 @@
-import { pageWorkerList, addWorker, updateWorker, deleteWorker } from '@/services/api';
+import {pageWorkerList, addWorker, updateWorker, deleteWorker} from '@/services/api';
 
 export default {
   namespace: 'worker',
 
   state: {
-    data: {
-      data: []
-    },
+    data: [],
   },
 
   effects: {
-    * query({ payload }, { call, put }) {
-      const response = yield call(pageWorkerList, payload);
+    * queryWorker({payload}, {call, put}) {
+      const response = yield call(pageWorkerList, {
+        ...payload,
+        orderByField: 'gmt_create',
+        orderByType: 1,
+      });
       yield put({
         type: 'save',
-        payload: response,
+        payload: response.data.data,
       });
     },
-    * add({ payload, callback }, { call, put }) {
-      const response = yield call(addWorker, payload);
+    * addWorker({payload, callback}, {call, put}) {
+      console.log(payload);
+      console.log('payload');
+      const addResponse = yield call(addWorker, payload);
+      const queryResponse = yield call(pageWorkerList,
+        {
+          orderByField: 'gmt_create',
+          orderByType: 1,
+        });
       yield put({
         type: 'save',
-        payload: response,
+        payload: queryResponse.data.data,
       });
       if (callback) callback();
     },
-    * delete({ payload, callback }, { call, put }) {
+    * deleteWorker({payload, callback}, {call, put}) {
       const response = yield call(deleteWorker, payload);
+      const queryResponse = yield call(pageWorkerList,
+        {
+          orderByField: 'gmt_create',
+          orderByType: 1,
+        });
       yield put({
         type: 'save',
-        payload: response,
+        payload: queryResponse.data.data,
       });
       if (callback) callback();
     },
-    * update({ payload, callback }, { call, put }) {
+    * updateWorker({payload, callback}, {call, put}) {
       const response = yield call(updateWorker, payload);
+      const queryResponse = yield call(pageWorkerList,
+        {
+          orderByField: 'gmt_create',
+          orderByType: 1,
+        });
       yield put({
         type: 'save',
-        payload: response,
+        payload: queryResponse.data.data,
       });
       if (callback) callback();
     },
