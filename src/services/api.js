@@ -65,13 +65,7 @@ export async function removeRule(params) {
 }
 
 export async function deleteWorker(params) {
-  return request('/api/worker', {
-    method: 'POST',
-    body: {
-      ...params,
-      method: 'delete',
-    },
-  });
+  return request(`/api/worker/deleteWorker?${stringify(params)}`);
 }
 
 export async function addRule(params) {

@@ -1,33 +1,15 @@
-import React, {Component, PureComponent} from 'react';
+import React, {PureComponent} from 'react';
 import {connect} from 'dva';
-import {
-  Card,
-  Badge,
-  Menu,
-  Divider,
-  Calendar,
-  Form,
-  Modal,
-  Input,
-  Checkbox,
-  Button,
-  Dropdown,
-  Icon,
-  message
-} from 'antd';
+import {Button, Calendar, Card, Checkbox, Divider, Dropdown, Form, Icon, Input, Menu, message, Modal} from 'antd';
 import DescriptionList from '@/components/DescriptionList';
 import PageHeaderWrapper from '@/components/PageHeaderWrapper';
 import moment from 'moment';
-import styles from './BasicProfile.less';
 import {fixedZero} from "../../utils/utils";
 import {getTimeDistance} from '@/utils/utils';
 
 const {Description} = DescriptionList;
 const FormItem = Form.Item;
-const CheckboxGroup = Checkbox.Group;
-
-
-const workerTypeMap = ['大工', '小工'];
+const workerTypeMap = ['管理层','大工', '小工'];
 
 @Form.create()
 class CreateForm extends PureComponent {

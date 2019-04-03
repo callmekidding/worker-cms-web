@@ -4,33 +4,48 @@ export default {
   namespace: 'worker',
 
   state: {
-    data: [],
+    data: {
+      list: [],
+      pagination: {},
+    },
   },
 
   effects: {
     * queryWorker({payload}, {call, put}) {
-      const response = yield call(pageWorkerList, {
-        ...payload,
-        orderByField: 'gmt_create',
-        orderByType: 1,
-      });
+      const response = yield call(pageWorkerList, payload);
+      const data = {
+        list: response.data.data,
+        pagination: {
+          total: response.data.totalCount,
+          pageSize: response.data.pageSize,
+          current: response.data.pageNo,
+        }
+      };
       yield put({
         type: 'save',
-        payload: response.data.data,
+        payload: data,
       });
     },
     * addWorker({payload, callback}, {call, put}) {
-      console.log(payload);
-      console.log('payload');
       const addResponse = yield call(addWorker, payload);
       const queryResponse = yield call(pageWorkerList,
         {
           orderByField: 'gmt_create',
           orderByType: 1,
+          pageSize: 10,
+          pageNo: 1,
         });
+      const data = {
+        list: queryResponse.data.data,
+        pagination: {
+          total: queryResponse.data.totalCount,
+          pageSize: queryResponse.data.pageSize,
+          current: queryResponse.data.pageNo,
+        }
+      };
       yield put({
         type: 'save',
-        payload: queryResponse.data.data,
+        payload: data,
       });
       if (callback) callback();
     },
@@ -40,10 +55,20 @@ export default {
         {
           orderByField: 'gmt_create',
           orderByType: 1,
+          pageSize: 10,
+          pageNo: 1,
         });
+      const data = {
+        list: queryResponse.data.data,
+        pagination: {
+          total: queryResponse.data.totalCount,
+          pageSize: queryResponse.data.pageSize,
+          current: queryResponse.data.pageNo,
+        }
+      };
       yield put({
         type: 'save',
-        payload: queryResponse.data.data,
+        payload: data,
       });
       if (callback) callback();
     },
@@ -53,10 +78,20 @@ export default {
         {
           orderByField: 'gmt_create',
           orderByType: 1,
+          pageSize: 10,
+          pageNo: 1,
         });
+      const data = {
+        list: queryResponse.data.data,
+        pagination: {
+          total: queryResponse.data.totalCount,
+          pageSize: queryResponse.data.pageSize,
+          current: queryResponse.data.pageNo,
+        }
+      };
       yield put({
         type: 'save',
-        payload: queryResponse.data.data,
+        payload: data,
       });
       if (callback) callback();
     },

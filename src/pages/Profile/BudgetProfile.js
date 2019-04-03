@@ -10,7 +10,7 @@ const {Option} = Select;
 const {MonthPicker, RangePicker} = DatePicker;
 const {Description} = DescriptionList;
 const budgetType = ['收入', '支出'];
-const workerTypeMap = ['大工', '小工'];
+const workerTypeMap = ['管理层','大工', '小工'];
 const statusMap = ['success', 'error'];
 const monthFormat = 'YYYY-MM';
 const now = new Date();
@@ -495,13 +495,13 @@ class BudgetProfile extends PureComponent {
         key: 'budgetAmount',
       },
       {
-        title: '发生时间',
+        title: '收支时间',
         dataIndex: 'budgetDate',
         key: 'budgetDate',
         render: val => <span>{moment(val).format('YYYY-MM-DD HH:mm:ss')}</span>,
       },
       {
-        title: '原因',
+        title: '收支备注',
         dataIndex: 'reason',
         key: 'reason',
       },

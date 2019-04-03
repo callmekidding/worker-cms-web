@@ -1,25 +1,21 @@
-import React, {PureComponent, Fragment} from 'react';
+import React, {Fragment, PureComponent} from 'react';
 import {connect} from 'dva';
-import moment from 'moment';
-import router from 'umi/router';
 import {
-  Row,
-  Col,
-  Card,
-  Form,
-  Input,
-  Select,
-  Icon,
-  Button,
-  Dropdown,
-  Menu,
-  InputNumber,
-  DatePicker,
-  Modal,
-  message,
   Badge,
+  Button,
+  Card,
+  Col,
   Divider,
+  Dropdown,
+  Form,
+  Icon,
+  Input,
+  Menu,
+  message,
+  Modal,
   Radio,
+  Row,
+  Select,
 } from 'antd';
 import StandardTable from '@/components/StandardTable';
 import PageHeaderWrapper from '@/components/PageHeaderWrapper';
@@ -27,15 +23,12 @@ import PageHeaderWrapper from '@/components/PageHeaderWrapper';
 import styles from './WorkerList.less';
 
 const FormItem = Form.Item;
-const {TextArea} = Input;
 const {Option} = Select;
-const RadioGroup = Radio.Group;
 const getValue = obj =>
   Object.keys(obj)
     .map(key => obj[key])
     .join(',');
-const statusMap = ['default', 'processing', 'success', 'error'];
-const workerStatus = ['在职', '离职'];
+const statusMap = ['success', 'processing', 'error'];
 const workerType = ['管理层', '大工', '小工'];
 
 const CreateForm = Form.create()(props => {
@@ -49,7 +42,7 @@ const CreateForm = Form.create()(props => {
     form.validateFields((err, fieldsValue) => {
       if (err) return;
       form.resetFields();
-      // handleAdd(fieldsValue);
+      handleAdd(fieldsValue);
     });
   };
   return (
@@ -98,156 +91,71 @@ const CreateForm = Form.create()(props => {
     </Modal>
   );
 });
-const UpdateForm = Form.create()(props => {
-  const formLayout = {
-    labelCol: {span: 7},
-    wrapperCol: {span: 13},
+
+@Form.create()
+class UpdateForm extends PureComponent {
+  constructor(props) {
+    super(props);
+    this.formLayout = {
+      labelCol: {span: 7},
+      wrapperCol: {span: 13},
+    };
   };
-  const {modalVisible, handleUpdateModalVisible, handleUpdate,values, form} = props;
-  const handleOnUpdateOk = formVals => {
+
+  handleOnUpdateOk = workerId => {
+    const {form, handleUpdate} = this.props;
     form.validateFields((err, fieldsValue) => {
       if (err) return;
       form.resetFields();
-      handleUpdate(formVals);
+      handleUpdate({
+        ...fieldsValue,
+        workerId: workerId,
+      });
     });
   };
-  return (
-    <Modal
-      width={640}
-      bodyStyle={{padding: '32px 40px 48px'}}
-      destroyOnClose
-      title="编辑工人信息"
-      visible={modalVisible}
-      onCancel={() => handleUpdateModalVisible(false, values)}
-      onOk={handleOnUpdateOk(values)}
-    >
-      <Form {...formLayout} >
 
-        <Form.Item key="workerName" {...formLayout} label="工人名称">
-          {form.getFieldDecorator('workerName', {
-            rules: [{required: true, message: '请输入工人名称！'}],
-            initialValue: values.workerName,
-          })(<Input placeholder="请输入"/>)}
-        </Form.Item>
-        <Form.Item key="workerType" {...formLayout} label="工人工种">
-          {
-            form.getFieldDecorator('workerType', {
-              initialValue: `${values.workerType}`,
-              rules: [{
-                required: true,
-                message: '请选择工人工种',
-              }],
-            })(
-              <Select placeholder="请选择">
-                <Option
-                  value="0"
-                >
-                  管理层
-                </Option>
-                <Option
-                  value="1"
-                >
-                  大工
-                </Option>
-                <Option
-                  value="2"
-                >
-                  小工
-                </Option>
-              </Select>,
-            )
-          }
-        </Form.Item>
-      </Form>
-    </Modal>
-  );
-});
+  render() {
+    const {modalVisible, handleUpdateModalVisible, values, form} = this.props;
+    return (
+      <Modal
+        width={640}
+        bodyStyle={{padding: '32px 40px 48px'}}
+        destroyOnClose
+        title="编辑工人信息"
+        visible={modalVisible}
+        onCancel={() => handleUpdateModalVisible(false, values)}
+        onOk={() => this.handleOnUpdateOk(values.workerId)}
+      >
+        <Form {...this.formLayout} onSubmit={this.handleSubmit}>
 
-// @Form.create()
-// class UpdateForm extends PureComponent {
-//   static defaultProps = {
-//     handleUpdate: () => {
-//     },
-//     handleUpdateModalVisible: () => {
-//     },
-//     values: {},
-//   };
-//
-//   constructor(props) {
-//     super(props);
-//     this.state = {
-//       formVals: {},
-//     };
-//     this.formLayout = {
-//       labelCol: {span: 7},
-//       wrapperCol: {span: 13},
-//     };
-//   };
-//
-//   handleOnUpdateOk = formVals => {
-//     const {form, handleUpdate} = this.props;
-//     // form.validateFields((err, fieldsValue) => {
-//     //   if (err) return;
-//     //   form.resetFields();
-//     //   // handleUpdate(formVals);
-//     // });
-//   };
-//
-//   render() {
-//     const {modalVisible, handleUpdateModalVisible, values, form} = this.props;
-//     console.log(values);
-//     return (
-//       <Modal
-//         width={640}
-//         bodyStyle={{padding: '32px 40px 48px'}}
-//         destroyOnClose
-//         title="编辑工人信息"
-//         visible={modalVisible}
-//         onCancel={() => handleUpdateModalVisible(false, values)}
-//         onOk={this.handleOnUpdateOk(values)}
-//       >
-//         <Form {...this.formLayout} onSubmit={this.handleSubmit}>
-//
-//           <Form.Item key="workerName" {...this.formLayout} label="工人名称">
-//             {form.getFieldDecorator('workerName', {
-//               rules: [{required: true, message: '请输入工人名称！'}],
-//               initialValue: values.workerName,
-//             })(<Input placeholder="请输入"/>)}
-//           </Form.Item>
-//           <Form.Item key="workerType" {...this.formLayout} label="工人工种">
-//             {
-//               form.getFieldDecorator('workerType', {
-//                 initialValue: `${values.workerType}`,
-//                 rules: [{
-//                   required: true,
-//                   message: '请选择工人工种',
-//                 }],
-//               })(
-//                 <Select placeholder="请选择">
-//                   <Option
-//                     value="0"
-//                   >
-//                     管理层
-//                   </Option>
-//                   <Option
-//                     value="1"
-//                   >
-//                     大工
-//                   </Option>
-//                   <Option
-//                     value="2"
-//                   >
-//                     小工
-//                   </Option>
-//                 </Select>,
-//               )
-//             }
-//           </Form.Item>
-//         </Form>
-//       </Modal>
-//     );
-//   }
-// }
+          <Form.Item key="workerName" {...this.formLayout} label="工人名称">
+            {form.getFieldDecorator('workerName', {
+              rules: [{required: true, message: '请输入工人名称！'}],
+              initialValue: values.workerName,
+            })(<Input placeholder="请输入"/>)}
+          </Form.Item>
+          <Form.Item key="workerType" {...this.formLayout} label="工人工种">
+            {
+              form.getFieldDecorator('workerType', {
+                initialValue: `${values.workerType}`,
+                rules: [{
+                  required: true,
+                  message: '请选择工人工种',
+                }],
+              })(
+                <Select placeholder="请选择">
+                  <Option value="0">管理层</Option>
+                  <Option value="1">大工</Option>
+                  <Option value="2">小工</Option>
+                </Select>,
+              )
+            }
+          </Form.Item>
+        </Form>
+      </Modal>
+    );
+  }
+}
 
 /* eslint react/no-multi-comp:0 */
 @connect(({worker, loading}) => ({
@@ -315,6 +223,12 @@ class WorkerList extends PureComponent {
     const {dispatch} = this.props;
     dispatch({
       type: 'worker/queryWorker',
+      payload: {
+        orderByField: 'gmt_create',
+        orderByType: 1,
+        pageSize: 10,
+        pageNo: 1,
+      }
     });
   }
 
@@ -329,8 +243,10 @@ class WorkerList extends PureComponent {
     }, {});
 
     const params = {
-      currentPage: pagination.current,
+      orderByField: 'gmt_create',
+      orderByType: 1,
       pageSize: pagination.pageSize,
+      pageNo: pagination.current,
       ...formValues,
       ...filters,
     };
@@ -344,10 +260,6 @@ class WorkerList extends PureComponent {
     });
   };
 
-  previewItem = id => {
-    router.push(`/profile/basic/${id}`);
-  };
-
   handleFormReset = () => {
     const {form, dispatch} = this.props;
     form.resetFields();
@@ -356,7 +268,12 @@ class WorkerList extends PureComponent {
     });
     dispatch({
       type: 'worker/queryWorker',
-      payload: {},
+      payload: {
+        orderByField: 'gmt_create',
+        orderByType: 1,
+        pageSize: 10,
+        pageNo: 1,
+      },
     });
   };
 
@@ -406,7 +323,13 @@ class WorkerList extends PureComponent {
 
       dispatch({
         type: 'worker/queryWorker',
-        payload: values,
+        payload: {
+          ...values,
+          orderByField: 'gmt_create',
+          orderByType: 1,
+          pageSize: 10,
+          pageNo: 1,
+        },
       });
     });
   };
@@ -424,16 +347,32 @@ class WorkerList extends PureComponent {
     });
   };
 
-  delete = (id) => {
-    console.log(id);
+  delete = (workerId) => {
+    Modal.confirm({
+      title: '删除操作',
+      content: '确认删除该条工人信息吗？',
+      okText: '确认',
+      cancelText: '取消',
+      onOk: () => {
+        const {dispatch} = this.props;
+        const payload = {
+          workerId: workerId,
+        };
+        dispatch({
+          type: 'worker/deleteWorker',
+          payload: payload,
+        });
+        message.success('删除成功');
+      },
+    });
   };
 
-  attendanceProfile = (id) => {
-    router.push(`/profile/attendance/${id}`);
+  attendanceProfile = (workerId) => {
+    router.push(`/profile/attendance/${workerId}`);
   };
 
-  budgetProfile = (id) => {
-    router.push(`/profile/budget/${id}`);
+  budgetProfile = (workerId) => {
+    router.push(`/profile/budget/${workerId}`);
   };
 
   handleAdd = fields => {
@@ -449,13 +388,11 @@ class WorkerList extends PureComponent {
     this.handleModalVisible();
   };
 
-  handleUpdate = fieldsValue => {
+  handleUpdate = formValue => {
     const {dispatch} = this.props;
-    console.log('fieldsValue');
-    console.log(fieldsValue);
     dispatch({
       type: 'worker/updateWorker',
-      payload: {...fieldsValue}
+      payload: {...formValue}
     });
     message.success('编辑成功');
     this.handleUpdateModalVisible();
@@ -506,13 +443,13 @@ class WorkerList extends PureComponent {
   }
 
   render() {
-    const {worker, loading} = this.props;
-    const {data} = worker;
+    const {
+      worker: {data},
+      loading,
+    } = this.props;
+    console.log(this.props);
+    console.log(data);
     const {selectedRows, modalVisible, updateModalVisible, stepFormValues} = this.state;
-    console.log('isUpdate');
-    console.log(stepFormValues && Object.keys(stepFormValues).length);
-    console.log('updateModalVisible');
-    console.log(updateModalVisible);
     const menu = (
       <Menu onClick={this.handleMenuClick} selectedKeys={[]}>
         <Menu.Item key="remove">删除</Menu.Item>
@@ -550,7 +487,7 @@ class WorkerList extends PureComponent {
             <StandardTable
               selectedRows={selectedRows}
               loading={loading}
-              data={{list: data}}
+              data={data}
               columns={this.columns}
               onSelectRow={this.handleSelectRows}
               onChange={this.handleStandardTableChange}

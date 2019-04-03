@@ -358,6 +358,8 @@ class TableList extends PureComponent {
   }
 
   handleStandardTableChange = (pagination, filtersArg, sorter) => {
+    console.log('pagination');
+    console.log(pagination);
     const { dispatch } = this.props;
     const { formValues } = this.state;
 
@@ -629,6 +631,7 @@ class TableList extends PureComponent {
       rule: { data },
       loading,
     } = this.props;
+    console.log(data);
     const { selectedRows, modalVisible, updateModalVisible, stepFormValues } = this.state;
     const menu = (
       <Menu onClick={this.handleMenuClick} selectedKeys={[]}>
