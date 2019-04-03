@@ -264,10 +264,6 @@ class UpdateForm extends PureComponent {
 
   render() {
     const {modalVisible, form, handleUpdateModalVisible, workerData} = this.props;
-    console.log('this.props');
-    console.log(this.props);
-    console.log('this.state');
-    console.log(this.state);
     return (
       <Modal
         width={600}

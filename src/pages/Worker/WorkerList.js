@@ -49,7 +49,7 @@ const CreateForm = Form.create()(props => {
     form.validateFields((err, fieldsValue) => {
       if (err) return;
       form.resetFields();
-      handleAdd(fieldsValue);
+      // handleAdd(fieldsValue);
     });
   };
   return (
@@ -98,49 +98,41 @@ const CreateForm = Form.create()(props => {
     </Modal>
   );
 });
-
-@Form.create()
-class UpdateForm extends PureComponent {
-  static defaultProps = {
-    handleUpdate: () => {
-    },
-    handleUpdateModalVisible: () => {
-    },
-    values: {},
+const UpdateForm = Form.create()(props => {
+  const formLayout = {
+    labelCol: {span: 7},
+    wrapperCol: {span: 13},
   };
-
-  constructor(props) {
-    super(props);
-
-    this.state = {
-      formVals: {
-        workerName: props.values.workerName,
-        workerType: props.values.workerType,
-        workerId: props.values.workerId,
-      },
-    };
-
-    this.formLayout = {
-      labelCol: {span: 7},
-      wrapperCol: {span: 13},
-    };
+  const {modalVisible, handleUpdateModalVisible, handleUpdate,values, form} = props;
+  const handleOnUpdateOk = formVals => {
+    form.validateFields((err, fieldsValue) => {
+      if (err) return;
+      form.resetFields();
+      handleUpdate(formVals);
+    });
   };
+  return (
+    <Modal
+      width={640}
+      bodyStyle={{padding: '32px 40px 48px'}}
+      destroyOnClose
+      title="编辑工人信息"
+      visible={modalVisible}
+      onCancel={() => handleUpdateModalVisible(false, values)}
+      onOk={handleOnUpdateOk(values)}
+    >
+      <Form {...formLayout} >
 
-  renderContent = (formVals) => {
-    const {form} = this.props;
-    return (
-      <Form {...this.formLayout} onSubmit={this.handleSubmit}>
-
-        <Form.Item key="workerName" {...this.formLayout} label="工人名称">
+        <Form.Item key="workerName" {...formLayout} label="工人名称">
           {form.getFieldDecorator('workerName', {
             rules: [{required: true, message: '请输入工人名称！'}],
-            initialValue: formVals.workerName,
+            initialValue: values.workerName,
           })(<Input placeholder="请输入"/>)}
-        </Form.Item>,
-        <Form.Item key="workerType" {...this.formLayout} label="工人工种">
+        </Form.Item>
+        <Form.Item key="workerType" {...formLayout} label="工人工种">
           {
             form.getFieldDecorator('workerType', {
-              initialValue: `${formVals.workerType}`,
+              initialValue: `${values.workerType}`,
               rules: [{
                 required: true,
                 message: '请选择工人工种',
@@ -165,52 +157,97 @@ class UpdateForm extends PureComponent {
               </Select>,
             )
           }
-        </Form.Item>,
+        </Form.Item>
       </Form>
-    );
-  };
+    </Modal>
+  );
+});
 
-  handleUpdate = fieldsValue => {
-    const {dispatch} = this.props;
-    console.log('fieldsValue');
-    console.log(fieldsValue);
-    dispatch({
-      type: 'worker/updateWorker',
-      payload: {
-        ...fieldsValue
-      },
-    });
-    message.success('添加成功');
-    this.handleAddModalVisible();
-  };
-
-
-  render() {
-    const {updateModalVisible, handleUpdateModalVisible, values, form} = this.props;
-    const {formVals} = this.state;
-    const handleOnUpdateOk = () => {
-      form.validateFields((err, fieldsValue) => {
-        if (err) return;
-        form.resetFields();
-        this.handleUpdate(fieldsValue);
-      });
-    };
-    return (
-      <Modal
-        width={640}
-        bodyStyle={{padding: '32px 40px 48px'}}
-        destroyOnClose
-        title="编辑工人信息"
-        visible={updateModalVisible}
-        onCancel={() => handleUpdateModalVisible(false, values)}
-        afterClose={() => handleUpdateModalVisible()}
-        onOk={handleOnUpdateOk}
-      >
-        {this.renderContent(formVals)}
-      </Modal>
-    );
-  }
-}
+// @Form.create()
+// class UpdateForm extends PureComponent {
+//   static defaultProps = {
+//     handleUpdate: () => {
+//     },
+//     handleUpdateModalVisible: () => {
+//     },
+//     values: {},
+//   };
+//
+//   constructor(props) {
+//     super(props);
+//     this.state = {
+//       formVals: {},
+//     };
+//     this.formLayout = {
+//       labelCol: {span: 7},
+//       wrapperCol: {span: 13},
+//     };
+//   };
+//
+//   handleOnUpdateOk = formVals => {
+//     const {form, handleUpdate} = this.props;
+//     // form.validateFields((err, fieldsValue) => {
+//     //   if (err) return;
+//     //   form.resetFields();
+//     //   // handleUpdate(formVals);
+//     // });
+//   };
+//
+//   render() {
+//     const {modalVisible, handleUpdateModalVisible, values, form} = this.props;
+//     console.log(values);
+//     return (
+//       <Modal
+//         width={640}
+//         bodyStyle={{padding: '32px 40px 48px'}}
+//         destroyOnClose
+//         title="编辑工人信息"
+//         visible={modalVisible}
+//         onCancel={() => handleUpdateModalVisible(false, values)}
+//         onOk={this.handleOnUpdateOk(values)}
+//       >
+//         <Form {...this.formLayout} onSubmit={this.handleSubmit}>
+//
+//           <Form.Item key="workerName" {...this.formLayout} label="工人名称">
+//             {form.getFieldDecorator('workerName', {
+//               rules: [{required: true, message: '请输入工人名称！'}],
+//               initialValue: values.workerName,
+//             })(<Input placeholder="请输入"/>)}
+//           </Form.Item>
+//           <Form.Item key="workerType" {...this.formLayout} label="工人工种">
+//             {
+//               form.getFieldDecorator('workerType', {
+//                 initialValue: `${values.workerType}`,
+//                 rules: [{
+//                   required: true,
+//                   message: '请选择工人工种',
+//                 }],
+//               })(
+//                 <Select placeholder="请选择">
+//                   <Option
+//                     value="0"
+//                   >
+//                     管理层
+//                   </Option>
+//                   <Option
+//                     value="1"
+//                   >
+//                     大工
+//                   </Option>
+//                   <Option
+//                     value="2"
+//                   >
+//                     小工
+//                   </Option>
+//                 </Select>,
+//               )
+//             }
+//           </Form.Item>
+//         </Form>
+//       </Modal>
+//     );
+//   }
+// }
 
 /* eslint react/no-multi-comp:0 */
 @connect(({worker, loading}) => ({
@@ -412,24 +449,18 @@ class WorkerList extends PureComponent {
     this.handleModalVisible();
   };
 
-  handleUpdate = fields => {
+  handleUpdate = fieldsValue => {
     const {dispatch} = this.props;
-    const {formValues} = this.state;
+    console.log('fieldsValue');
+    console.log(fieldsValue);
     dispatch({
-      type: 'rule/update',
-      payload: {
-        query: formValues,
-        body: {
-          name: fields.name,
-          desc: fields.desc,
-          key: fields.key,
-        },
-      },
+      type: 'worker/updateWorker',
+      payload: {...fieldsValue}
     });
-
-    message.success('配置成功');
+    message.success('编辑成功');
     this.handleUpdateModalVisible();
   };
+
 
   renderSimpleForm() {
     const {
@@ -478,6 +509,10 @@ class WorkerList extends PureComponent {
     const {worker, loading} = this.props;
     const {data} = worker;
     const {selectedRows, modalVisible, updateModalVisible, stepFormValues} = this.state;
+    console.log('isUpdate');
+    console.log(stepFormValues && Object.keys(stepFormValues).length);
+    console.log('updateModalVisible');
+    console.log(updateModalVisible);
     const menu = (
       <Menu onClick={this.handleMenuClick} selectedKeys={[]}>
         <Menu.Item key="remove">删除</Menu.Item>
@@ -524,15 +559,13 @@ class WorkerList extends PureComponent {
         </Card>
         <CreateForm {...parentMethods} modalVisible={modalVisible}/>
         {stepFormValues && Object.keys(stepFormValues).length ? (
-          <UpdateForm
-            {...updateMethods}
-            updateModalVisible={updateModalVisible}
-            values={stepFormValues}
-          />
+          <UpdateForm {...updateMethods} modalVisible={updateModalVisible} values={stepFormValues}/>
         ) : null}
+
       </PageHeaderWrapper>
     );
   }
+
 }
 
 export default WorkerList;
